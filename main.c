@@ -79,6 +79,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define MAXREAD 100
 
@@ -137,6 +138,7 @@ struct gpgga *gpsDataType2[MAXREAD];
 
 struct gprmc *loadGPRMCData(char *line);
 struct gpgga *loadGPGGAData(char *line);
+struct tm  * convertDateTime(float utc, int date);
 
 
 int main(int argc, char **argv) {
@@ -202,7 +204,9 @@ int main(int argc, char **argv) {
     
     for (int i = 0; gpsDataType1[i] != '\0' || gpsDataType2[i] != '\0' ; i++) {
         
-        printf("Structure GPRMC # %d:\n UTC of Position Fix-> %.2f\n Data Status-> %c \n Latitude-> %.4f \n Latitude Direction-> %c \n Longitude-> %.4f \n Longitude Direction-> %c \n Speed Over Ground (knots)-> %.2f \n Track Made Good in Degrees-> %.2f \n Date-> %d \n Magnetic Variation Degrees-> %f \n Magnetic Variation Direction-> %c \n Checksum-> %s \n\n",
+        struct tm * date_time = convertDateTime(gpsDataType1[i]->fix_time,gpsDataType1[i]->date);
+        
+        printf("Structure GPRMC # %d:\n UTC of Position Fix-> %.2f\n Data Status-> %c \n Latitude-> %.4f \n Latitude Direction-> %c \n Longitude-> %.4f \n Longitude Direction-> %c \n Speed Over Ground (knots)-> %.2f \n Track Made Good in Degrees-> %.2f \n Date-> %d \n Magnetic Variation Degrees-> %f \n Magnetic Variation Direction-> %c \n Checksum-> %s \n Date Time Stamp: %d/%d/%d %d:%d:%d \n\n",
                i,
                gpsDataType1[i]->fix_time,
                gpsDataType1[i]->status,
@@ -215,7 +219,8 @@ int main(int argc, char **argv) {
                gpsDataType1[i]->date,
                gpsDataType1[i]->mag_var,
                gpsDataType1[i]->mag_var_direction,
-               gpsDataType1[i]->checksum);
+               gpsDataType1[i]->checksum,
+               date_time->tm_mon, date_time->tm_mday, date_time->tm_year,date_time->tm_hour, date_time->tm_min, date_time->tm_sec);
         
     
         printf("Structure GPGGA # %d:\n UTC of Position Fix-> %.2f\n Latitude-> %.4f \n Latitude Direction-> %c \n Longitude-> %.4f \n Longitude Direction-> %c \n Fix Quality-> %d \n Number of Satellites-> %d \n Horizontal Dilution-> %.2f \n Altitude-> %f \n Altitude Measurement Type-> %c \n Height-> %f \n Height Measurement Type-> %c \n Elapsed Fix Time or GPS Station ID-> %s \n Checksum-> %s \n\n",
@@ -235,8 +240,9 @@ int main(int argc, char **argv) {
                gpsDataType2[i]->elapsed_fix_time_gps_station_id,
                gpsDataType2[i]->checksum);
         
+        free(date_time);
+        
     }
-    
     
     fclose(fp);
     return 0;
@@ -254,7 +260,7 @@ struct gprmc *loadGPRMCData(char *line) {
     
     while ((token = strsep(&line, ",")) != NULL) {
         
-       printf("%s\n", token);
+//       printf("%s\n", token);
         
         switch(token_num) {
                 
@@ -401,3 +407,27 @@ struct gpgga *loadGPGGAData(char *line) {
     return p;
     
 }
+
+/* FUNCTION TO CREATE A DATE TIME STAMP STRUCTURE FOR FURTHER USE */
+struct tm  * convertDateTime(float utc, int date){
+    
+    struct tm *p = malloc(sizeof(struct tm));
+    
+    int time = (int) utc;
+  
+    p->tm_hour = (time / 10000) % 100;
+    p->tm_min = (time / 100) % 100;
+    p->tm_sec = time % 100;
+    p->tm_mday = (date / 10000) % 100;
+    p->tm_mon = (date / 100) % 100;
+    p->tm_year = (date % 100) + 2000;
+    
+    
+    return p;
+}
+
+
+    
+    
+
+
