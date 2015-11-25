@@ -146,16 +146,15 @@ void *print_html(void *arg)
 {
     
     FILE *fp;
-    fp = fopen("test.html","w"); // read mode
-    
-    /* NEEDS DEVELOPMENT */
+    fp = fopen("test.html","w"); // write mode
     
     if( fp == NULL )
     {
-        perror("Error while opening the file.\n");
+        perror("Error creating the file.\n");
         exit(EXIT_FAILURE);
     }
-    
+   
+       /* NEEDS DEVELOPMENT RIGHT HERE TO INTRODUCE THE HTML HEADERS, TAGS, AND ANY JAVASCRIPT  */
 
     printf("***** T E S T *****\n\n");
 
@@ -218,7 +217,7 @@ int main(int argc, char **argv) {
     /*
      
      READ LINE DATA IN AND DETERMINE WHICH TYPE OF GPS DATA IT IS. INSPECT THE READ LINE AND READ THE FIRST SEVEN
-     CHARS TO DETERMINE WHICH STRUCTURE TO LOAD INTO GIVEN. THE DATA ALTERNATES BETWEEN $GPRMC AND$GPGGA DATA TYPES
+     CHARS TO DETERMINE WHICH STRUCTURE TO LOAD. THE DATA ALTERNATES BETWEEN $GPRMC AND$GPGGA DATA TYPES
      
      */
     
