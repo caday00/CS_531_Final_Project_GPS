@@ -80,6 +80,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <pthread.h>
 
 #define MAXREAD 100
 
@@ -141,10 +142,53 @@ struct gpgga *loadGPGGAData(char *line);
 struct tm  * convertDateTime(float utc, int date);
 
 
-int main(int argc, char **argv) {
+void *print_html(void *arg)
+{
+    
+    FILE *fp;
+    fp = fopen("test.html","w"); // read mode
+    
+    /* NEEDS DEVELOPMENT */
+    
+    if( fp == NULL )
+    {
+        perror("Error while opening the file.\n");
+        exit(EXIT_FAILURE);
+    }
+    
+
+    printf("***** T E S T *****\n\n");
 
     
-    // LOAD ARDUINO GPS DATA FROM COMMAND LINE ARGUMENT
+    /* TEST FOR PRINTING FIELDS - ONLY PULLS OUT DATA FROM THE $GPRMC STRUCTURE */
+    
+        for (int i = 0; gpsDataType1[i] != '\0'; i++) {
+    
+            struct tm * date_time = convertDateTime(gpsDataType1[i]->fix_time,gpsDataType1[i]->date);
+            
+                printf("Structure GPRMC # %d:\n Date-> %d \n Time (UTC)-> %.2f \n Latitude-> %.4f \n Latitude Direction-> %c \n Longitude-> %.4f \n Longitude Direction-> %c \n\n Converted Date Time: %d/%d/%d %d:%d:%d \n\n",
+                                   i,
+                                   gpsDataType1[i]->date,
+                                   gpsDataType1[i]->fix_time,
+                                   gpsDataType1[i]->latitude,
+                                   gpsDataType1[i]->lat_direction,
+                                   gpsDataType1[i]->longitude,
+                                   gpsDataType1[i]->long_direction,
+                                   date_time->tm_mon, date_time->tm_mday, date_time->tm_year,date_time->tm_hour, date_time->tm_min, date_time->tm_sec);
+    
+                free(date_time);
+    
+        }
+    
+    return NULL;
+}
+
+
+
+int main(int argc, char **argv) {
+    
+    
+    // LOAD ARDUINO GPS DATA FILE FROM COMMAND LINE ARGUMENT
     
     char *file_name = argv[1];
     
@@ -157,9 +201,24 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
     
+ 
+    // CREATE PRINTING THREAD
+    
+    pthread_t print_html_thread;
+
+    if(pthread_create(&print_html_thread, NULL, print_html,NULL)) {
+        
+        perror("Error creating thread\n");
+        exit(EXIT_FAILURE);
+        
+    }
+    
+  
+    
     /*
      
-     READ LINE DATA IN AND DETERMINE WHICH TYPE OF GPS DATA IT IS
+     READ LINE DATA IN AND DETERMINE WHICH TYPE OF GPS DATA IT IS. INSPECT THE READ LINE AND READ THE FIRST SEVEN
+     CHARS TO DETERMINE WHICH STRUCTURE TO LOAD INTO GIVEN. THE DATA ALTERNATES BETWEEN $GPRMC AND$GPGGA DATA TYPES
      
      */
     
@@ -167,18 +226,11 @@ int main(int argc, char **argv) {
     size_t len = 0;
     ssize_t read;
     int line_num = 0;
+    char peek[8];
     
     while ((read = getline(&line, &len, fp)) != -1) {
-     
         
-    /* 
-     
-     INSPECT THE READ LINE AND READ THE FIRST SEVEN CHARS TO DETERMINE WHICH STRUCTURE TO LOAD INTO
-     GIVEN THE SAMPLE OUTPUT, THE DATA ALTERNATES BETWEEN $GPRMC and $GPGGA DATA TYPES
-     
-     */
         
-        char peek[8];
         
         strncpy(peek, line, 7);
         
@@ -196,57 +248,20 @@ int main(int argc, char **argv) {
             perror("Error. GPS data specification not found.");
             exit(EXIT_FAILURE);
         }
-        
     }
-    
-    
-    // TEST FOR PRINTING FIELDS IN BOTH STRUCTURES
-    
-    for (int i = 0; gpsDataType1[i] != '\0' || gpsDataType2[i] != '\0' ; i++) {
-        
-        struct tm * date_time = convertDateTime(gpsDataType1[i]->fix_time,gpsDataType1[i]->date);
-        
-        printf("Structure GPRMC # %d:\n UTC of Position Fix-> %.2f\n Data Status-> %c \n Latitude-> %.4f \n Latitude Direction-> %c \n Longitude-> %.4f \n Longitude Direction-> %c \n Speed Over Ground (knots)-> %.2f \n Track Made Good in Degrees-> %.2f \n Date-> %d \n Magnetic Variation Degrees-> %f \n Magnetic Variation Direction-> %c \n Checksum-> %s \n Date Time Stamp: %d/%d/%d %d:%d:%d \n\n",
-               i,
-               gpsDataType1[i]->fix_time,
-               gpsDataType1[i]->status,
-               gpsDataType1[i]->latitude,
-               gpsDataType1[i]->lat_direction,
-               gpsDataType1[i]->longitude,
-               gpsDataType1[i]->long_direction,
-               gpsDataType1[i]->speed,
-               gpsDataType1[i]->track_angle,
-               gpsDataType1[i]->date,
-               gpsDataType1[i]->mag_var,
-               gpsDataType1[i]->mag_var_direction,
-               gpsDataType1[i]->checksum,
-               date_time->tm_mon, date_time->tm_mday, date_time->tm_year,date_time->tm_hour, date_time->tm_min, date_time->tm_sec);
-        
-    
-        printf("Structure GPGGA # %d:\n UTC of Position Fix-> %.2f\n Latitude-> %.4f \n Latitude Direction-> %c \n Longitude-> %.4f \n Longitude Direction-> %c \n Fix Quality-> %d \n Number of Satellites-> %d \n Horizontal Dilution-> %.2f \n Altitude-> %f \n Altitude Measurement Type-> %c \n Height-> %f \n Height Measurement Type-> %c \n Elapsed Fix Time or GPS Station ID-> %s \n Checksum-> %s \n\n",
-               i,
-               gpsDataType2[i]->fix_time,
-               gpsDataType2[i]->latitude,
-               gpsDataType2[i]->lat_direction,
-               gpsDataType2[i]->longitude,
-               gpsDataType2[i]->long_direction,
-               gpsDataType2[i]->fix_qual,
-               gpsDataType2[i]->number_of_sats,
-               gpsDataType2[i]->horiz_dilution,
-               gpsDataType2[i]->altitude,
-               gpsDataType2[i]->alt_measure_type,
-               gpsDataType2[i]->height,
-               gpsDataType2[i]->height_measure_type,
-               gpsDataType2[i]->elapsed_fix_time_gps_station_id,
-               gpsDataType2[i]->checksum);
-        
-        free(date_time);
-        
-    }
-    
+ 
+    pthread_join(print_html_thread, NULL);
+
     fclose(fp);
+    
+    pthread_exit(NULL);
+
+    
     return 0;
+    
+
 }
+
 
 
 /* PARSER FOR $GPRMC LINE OF DATA. LOADS THE PARSED COMMA SEPARATED TOKENS INTO THE DESIGNATED STRUCTURE  */
@@ -260,7 +275,7 @@ struct gprmc *loadGPRMCData(char *line) {
     
     while ((token = strsep(&line, ",")) != NULL) {
         
-//       printf("%s\n", token);
+        //       printf("%s\n", token);
         
         switch(token_num) {
                 
@@ -335,7 +350,7 @@ struct gpgga *loadGPGGAData(char *line) {
     
     while ((token = strsep(&line, ",")) != NULL) {
         
-//        printf("%s\n", token);
+        //        printf("%s\n", token);
         
         switch(token_num) {
                 
@@ -362,7 +377,7 @@ struct gpgga *loadGPGGAData(char *line) {
             case 5:
                 p->long_direction =  *token;
                 token_num++;
-                break;  
+                break;
             case 6:
                 p->fix_qual =  atoi(token);
                 token_num++;
@@ -390,11 +405,11 @@ struct gpgga *loadGPGGAData(char *line) {
             case 12:
                 p->height_measure_type =  *token;
                 token_num++;
-                break;       	
+                break;
             case 13:
                 p->elapsed_fix_time_gps_station_id =  token;
                 token_num++;
-                break; 	
+                break;
             case 14:
                 p->checksum =  token;
                 token_num++;
@@ -414,7 +429,7 @@ struct tm  * convertDateTime(float utc, int date){
     struct tm *p = malloc(sizeof(struct tm));
     
     int time = (int) utc;
-  
+    
     p->tm_hour = (time / 10000) % 100;
     p->tm_min = (time / 100) % 100;
     p->tm_sec = time % 100;
