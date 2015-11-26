@@ -140,49 +140,7 @@ struct gpgga *gpsDataType2[MAXREAD];
 struct gprmc *loadGPRMCData(char *line);
 struct gpgga *loadGPGGAData(char *line);
 struct tm  * convertDateTime(float utc, int date);
-
-
-void *print_html(void *arg)
-{
-    
-    FILE *fp;
-    fp = fopen("test.html","w"); // write mode
-    
-    if( fp == NULL )
-    {
-        perror("Error creating the file.\n");
-        exit(EXIT_FAILURE);
-    }
-   
-       /* NEEDS DEVELOPMENT RIGHT HERE TO INTRODUCE THE HTML HEADERS, TAGS, AND ANY JAVASCRIPT  */
-
-    printf("***** T E S T *****\n\n");
-
-    
-    /* TEST FOR PRINTING FIELDS - ONLY PULLS OUT DATA FROM THE $GPRMC STRUCTURE */
-    
-        for (int i = 0; gpsDataType1[i] != '\0'; i++) {
-    
-            struct tm * date_time = convertDateTime(gpsDataType1[i]->fix_time,gpsDataType1[i]->date);
-            
-                printf("Structure GPRMC # %d:\n Date-> %d \n Time (UTC)-> %.2f \n Latitude-> %.4f \n Latitude Direction-> %c \n Longitude-> %.4f \n Longitude Direction-> %c \n\n Converted Date Time: %d/%d/%d %d:%d:%d \n\n",
-                                   i,
-                                   gpsDataType1[i]->date,
-                                   gpsDataType1[i]->fix_time,
-                                   gpsDataType1[i]->latitude,
-                                   gpsDataType1[i]->lat_direction,
-                                   gpsDataType1[i]->longitude,
-                                   gpsDataType1[i]->long_direction,
-                                   date_time->tm_mon, date_time->tm_mday, date_time->tm_year,date_time->tm_hour, date_time->tm_min, date_time->tm_sec);
-    
-                free(date_time);
-    
-        }
-    
-    return NULL;
-}
-
-
+void *print_html(void *arg);
 
 int main(int argc, char **argv) {
     
@@ -260,8 +218,6 @@ int main(int argc, char **argv) {
     
 
 }
-
-
 
 /* PARSER FOR $GPRMC LINE OF DATA. LOADS THE PARSED COMMA SEPARATED TOKENS INTO THE DESIGNATED STRUCTURE  */
 
@@ -422,7 +378,48 @@ struct gpgga *loadGPGGAData(char *line) {
     
 }
 
+void *print_html(void *arg)
+{
+    
+    FILE *fp;
+    fp = fopen("test.html","w"); // write mode
+    
+    if( fp == NULL )
+    {
+        perror("Error creating the file.\n");
+        exit(EXIT_FAILURE);
+    }
+   
+       /* NEEDS DEVELOPMENT RIGHT HERE TO INTRODUCE THE HTML HEADERS, TAGS, AND ANY JAVASCRIPT  */
+
+    printf("***** T E S T *****\n\n");
+
+    
+    /* TEST FOR PRINTING FIELDS - ONLY PULLS OUT DATA FROM THE $GPRMC STRUCTURE */
+    
+        for (int i = 0; gpsDataType1[i] != '\0'; i++) {
+    
+            struct tm * date_time = convertDateTime(gpsDataType1[i]->fix_time,gpsDataType1[i]->date);
+            
+                printf("Structure GPRMC # %d:\n Date-> %d \n Time (UTC)-> %.2f \n Latitude-> %.4f \n Latitude Direction-> %c \n Longitude-> %.4f \n Longitude Direction-> %c \n\n Converted Date Time: %d/%d/%d %d:%d:%d \n\n",
+                                   i,
+                                   gpsDataType1[i]->date,
+                                   gpsDataType1[i]->fix_time,
+                                   gpsDataType1[i]->latitude,
+                                   gpsDataType1[i]->lat_direction,
+                                   gpsDataType1[i]->longitude,
+                                   gpsDataType1[i]->long_direction,
+                                   date_time->tm_mon, date_time->tm_mday, date_time->tm_year,date_time->tm_hour, date_time->tm_min, date_time->tm_sec);
+    
+                free(date_time);
+    
+        }
+    
+    return NULL;
+}
+
 /* FUNCTION TO CREATE A DATE TIME STAMP STRUCTURE FOR FURTHER USE */
+
 struct tm  * convertDateTime(float utc, int date){
     
     struct tm *p = malloc(sizeof(struct tm));
@@ -436,12 +433,5 @@ struct tm  * convertDateTime(float utc, int date){
     p->tm_mon = (date / 100) % 100;
     p->tm_year = (date % 100) + 2000;
     
-    
     return p;
 }
-
-
-    
-    
-
-
