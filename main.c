@@ -45,6 +45,7 @@
 #include <string.h>
 #include <time.h>
 #include <pthread.h>
+#include <math.h>
 
 #define MAXREAD 10000
 
@@ -53,10 +54,10 @@ struct gprmc {
     const char *gps_reading_type;
     float fix_time;
     char status;
-    float latitude;        // <- This needs to get converted properly to decimal prior to use in Google Maps.
-    char lat_direction;    //
-    float longitude;       // <- This needs to get converted properly to decimal prior to use in Google Maps.
-    char long_direction;   //
+    float latitude;
+    char lat_direction;
+    float longitude;
+    char long_direction;
     float speed;
     float track_angle;
     int date;
@@ -74,6 +75,8 @@ struct tm  * convertDateTime(float utc, int date);
 
 // FUNCTION PROTOTYPE TO PRINT THE GPS DATA TO FILE AND FORMAT FOR HTML DISPLAY
 void *print_html(void *arg);
+
+float convertDegreeToDecimal(float value, char direction);
 
 // FREE STRUCT POINTERS FROM MEMORY
 void clean();
@@ -217,7 +220,6 @@ void *print_html(void *arg){
         struct tm * date_time = convertDateTime(gpsDataType1[i]->fix_time,gpsDataType1[i]->date);
         fprintf(fp, "\t<tr><td><center>%d</center></td><td><center>%.4f</center></td><td><center>%c</center></td><td><center>%.4f</center></td><td><center>%c</center></td><td><center>%.4f</center></td><td><center>%c</center></td><td><center>%d/%d/%d %d:%d:%d</center></td><td><center><a href=\"https://www.google.com/maps/?q=%.4f,%.4f\" target=\"_blank\">Click</a></center></td></tr>",
                 
-                
                 i,
                 gpsDataType1[i]->fix_time,
                 gpsDataType1[i]->status,
@@ -225,7 +227,7 @@ void *print_html(void *arg){
                 gpsDataType1[i]->lat_direction,//N or S
                 gpsDataType1[i]->longitude,
                 gpsDataType1[i]->long_direction, //E or W
-                date_time->tm_mon, date_time->tm_mday, date_time->tm_year,date_time->tm_hour, date_time->tm_min, date_time->tm_sec, gpsDataType1[i]->latitude,gpsDataType1[i]->longitude);
+                date_time->tm_mon, date_time->tm_mday, date_time->tm_year,date_time->tm_hour, date_time->tm_min, date_time->tm_sec, convertDegreeToDecimal(gpsDataType1[i]->latitude,gpsDataType1[i]->lat_direction), convertDegreeToDecimal(gpsDataType1[i]->longitude, gpsDataType1[i]->long_direction));
         
         free(date_time);
     }
@@ -253,6 +255,35 @@ struct tm  * convertDateTime(float utc, int date){
 }
 
 
+float convertDegreeToDecimal(float value, char direction){
+    
+    //Decimal Degrees = Degrees + minutes/60 + seconds/3600
+    
+    int sign;
+    int degrees;
+    float converted_minutes;
+    
+    switch (direction) {
+        case 'N':
+        case 'E':
+            sign = 1;
+            break;
+        case 'S':
+        case 'W':
+            sign = -1;
+            break;
+        default:
+            perror("No valid direction found.");
+            break;
+    }
+    
+    degrees = (int) value / 100;
+    converted_minutes = fmodf(value,100) / 60;
+    
+    return sign * (degrees + converted_minutes);
+}
+
+
 /* FREE-UP MEMORY  */
 void clean(){
     
@@ -260,5 +291,3 @@ void clean(){
         free(gpsDataType1[i]);
     
 }
-
-
