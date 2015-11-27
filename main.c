@@ -53,9 +53,9 @@ struct gprmc {
     const char *gps_reading_type;
     float fix_time;
     char status;
-    float latitude;        // <- This needs to get converted to decimal prior to use in Google Maps. Need function.
+    float latitude;        // <- This needs to get converted properly to decimal prior to use in Google Maps.
     char lat_direction;    //
-    float longitude;       // <- This needs to get converted to decimal prior to use in Google Maps. Need function.
+    float longitude;       // <- This needs to get converted properly to decimal prior to use in Google Maps.
     char long_direction;   //
     float speed;
     float track_angle;
@@ -119,9 +119,9 @@ int main(int argc, char **argv) {
     }
     pthread_join(print_html_thread, NULL);
     fclose(fp);
-    pthread_exit(NULL);
-
     clean();
+    pthread_exit(NULL);
+    
     return 0;
 }
 
@@ -207,13 +207,13 @@ void *print_html(void *arg){
     fprintf(fp, "<html>\n");
     fprintf(fp, "<body>\n");
     fprintf(fp, "<meta charset=\"UTF-8\">");
-    fprintf(fp, "\t<table style=\"width:100%\">");
+    fprintf(fp, "\t<table style=\"width:100%%\">");
     fprintf(fp, "\t<tr>");
     fprintf(fp, "\t<th>Row</th>\n\t<th>Fix Time</th>\n\t<th>Status</th>\n\t<th>Latitude</th>\n\t<th>Lat Direction</th>\n\t<th>Longtitude</th>\n\t<th>Long Direction</th>\n\t<th>Date/Time</th>\n\t<th>Link to Map</th>");
     fprintf(fp, "</tr>");
     
-    int i = 0;
-    for (i; gpsDataType1[i] != '\0'; i++) {
+    
+    for (int i = 0; gpsDataType1[i] != '\0'; i++) {
         struct tm * date_time = convertDateTime(gpsDataType1[i]->fix_time,gpsDataType1[i]->date);
         fprintf(fp, "\t<tr><td><center>%d</center></td><td><center>%.4f</center></td><td><center>%c</center></td><td><center>%.4f</center></td><td><center>%c</center></td><td><center>%.4f</center></td><td><center>%c</center></td><td><center>%d/%d/%d %d:%d:%d</center></td><td><center><a href=\"https://www.google.com/maps/?q=%.4f,%.4f\" target=\"_blank\">Click</a></center></td></tr>",
                 
@@ -260,3 +260,5 @@ void clean(){
         free(gpsDataType1[i]);
     
 }
+
+
