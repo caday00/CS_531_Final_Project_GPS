@@ -123,61 +123,48 @@ int main(int argc, char **argv) {
 struct gprmc *loadGPRMCData(char *line) {
     struct gprmc *p = malloc(sizeof(struct gprmc));
     char *token;
-    int token_num = 0;
+    int token_num = -1;
     
     while ((token = strsep(&line, ",")) != NULL) {
-        switch(token_num) {
+        switch(++token_num) {
             case 0:
                 p->gps_reading_type = token;
-                token_num++;
                 break;
             case 1:
                 p->fix_time = atof(token);
-                token_num++;
                 break;
             case 2:
                 p->status = *token;
-                token_num++;
                 break;
             case 3:
                 p->latitude = atof(token);
-                token_num++;
                 break;
             case 4:
                 p->lat_direction = *token;
-                token_num++;
                 break;
             case 5:
                 p->longitude = atof(token);
-                token_num++;
                 break;
             case 6:
                 p->long_direction = *token;
-                token_num++;
                 break;
             case 7:
                 p->speed = atof(token);
-                token_num++;
                 break;
             case 8:
                 p->track_angle = atof(token);
-                token_num++;
                 break;
             case 9:
                 p->date = atoi(token);
-                token_num++;
                 break;
             case 10:
                 p->mag_var = atof(token);
-                token_num++;
                 break;
             case 11:
                 p->mag_var_direction = *token;
-                token_num++;
                 break;
             case 12:
                 p->checksum = token;
-                token_num++;
                 break;
             default:
                 perror("Error. Additional token found.\n");
@@ -284,4 +271,3 @@ void clean(){
         free(gpsDataType1[i]);
     
 }
-
