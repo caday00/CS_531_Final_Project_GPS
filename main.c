@@ -7,39 +7,29 @@
  
  ----------------------------------------------------------------------------
  
- RECORD LAYOUT AND LINE SPECIFICATION FOR GPRMC GPS DATA (DATA TYPE 1)
+ RECORD LAYOUT AND LINE SPECIFICATION FOR GPRMC GPS DATA
  
- Example: $GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A
+ Example: $GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W,*6A
  
  Where:
- RMC          Recommended Minimum sentence C
- 123519       Fix taken at 12:35:19 UTC
- A            Status A=active or V=Void.
- 4807.038,N   Latitude 48 deg 07.038' N
- 01131.000,E  Longitude 11 deg 31.000' E
- 022.4        Speed over the ground in knots
- 084.4        Track angle in degrees True
- 230394       Date - 23rd of March 1994
- 003.1,W      Magnetic Variation
- *6A          The checksum data, always begins with *
+    Field #     Value        Description
+    1           RMC          Recommended Minimum sentence C
+    2           123519       Position Fix taken at 12:35:19 UTC
+    3           A            Data Status A=active or V=Void (navigation receiver warning)
+    4           4807.038     Latitude of fix: 48 deg 07.038'
+    5           N            Latitude direction: N  (N or S)
+    6           01131.000    Longitude of fix: 11 deg 31.000'
+    7           E            Longitude direction: E (E or W)
+    8           022.4        Speed over the ground in knots
+    9           084.4        Track angle in degrees True
+    10          230394       Date - 23rd of March 1994
+    11          003.1        Magnetic variation degrees
+    12          W            Magnetic variation direction (E or W)
+    13          *6A          Checksum data, always begins with *
  
- 
- $GPRMC,hhmmss.ss,A,llll.ll,a,yyyyy.yy,a,x.x,x.x,ddmmyy,x.x,a*hh
- 
- 1    = UTC of position fix
- 2    = Data status (V=navigation receiver warning)
- 3    = Latitude of fix
- 4    = N or S
- 5    = Longitude of fix
- 6    = E or W
- 7    = Speed over ground in knots
- 8    = Track made good in degrees True
- 9    = UT date
- 10   = Magnetic variation degrees (Easterly var. subtracts from true course)
- 11   = E or W
- 12   = Checksum
  ---------------------------------------------------------------------------------------
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,7 +39,7 @@
 
 #define MAXREAD 10000
 
-// GPS DATA TYPE 1 CONTAINING LAT & LONG, DATE, TIME, AND OTHER PROPERTIES
+// GPS DATA TYPE (RMC) CONTAINING LAT & LONG, DATE, TIME, AND OTHER PROPERTIES
 struct gprmc {
     const char *gps_reading_type;
     float fix_time;
@@ -70,13 +60,13 @@ struct gprmc {
 struct gprmc *gpsDataType1[MAXREAD];
 
 // FUNCTION PROTOTYPE TO PARSE & LOAD LINE DATA OF THE GPS DATA
-struct gprmc *loadGPRMCData(char *line);
-struct tm  * convertDateTime(float utc, int date);
+struct gprmc *loadGPRMCData(char *);
+struct tm  * convertDateTime(float, int);
+float convertDegreeToDecimal(float, char);
 
 // FUNCTION PROTOTYPE TO PRINT THE GPS DATA TO FILE AND FORMAT FOR HTML DISPLAY
-void *print_html(void *arg);
+void *print_html(void *);
 
-float convertDegreeToDecimal(float value, char direction);
 
 // FREE STRUCT POINTERS FROM MEMORY
 void clean();
@@ -86,7 +76,7 @@ int main(int argc, char **argv) {
     char *file_name = argv[1];
     
     FILE *fp;
-    fp = fopen(file_name,"r"); // read mode
+    fp = fopen(file_name,"r");
     
     if( fp == NULL )
     {
@@ -120,6 +110,7 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
     }
+    
     pthread_join(print_html_thread, NULL);
     fclose(fp);
     clean();
@@ -196,9 +187,10 @@ struct gprmc *loadGPRMCData(char *line) {
     return p;
 }
 
+/* FUNCTION EXCUTED BY THREAD TO CREATE AN HTML FILE & DISPLAY A TABLE OF GPS DATA AND HYPERLINK TO MAP LOCATION  */
 void *print_html(void *arg){
     FILE *fp;
-    fp = fopen("test.html","w"); // write mode
+    fp = fopen("test.html","w");
     
     if( fp == NULL )
     {
@@ -255,6 +247,7 @@ struct tm  * convertDateTime(float utc, int date){
 }
 
 
+/* FUNCTION TO CONVERT THE PARSE GPS COORDINATE DEGREE MINUTE DATA AND CONVERT TO DEGREE DECIMAL VALUE */
 float convertDegreeToDecimal(float value, char direction){
     
     //Decimal Degrees = Degrees + minutes/60 + seconds/3600
@@ -284,10 +277,11 @@ float convertDegreeToDecimal(float value, char direction){
 }
 
 
-/* FREE-UP MEMORY  */
+/* FREE-UP MEMORY USED BY GPS STRUCTURE  */
 void clean(){
     
     for (int i = 0; gpsDataType1[i] != '\0'; i++)
         free(gpsDataType1[i]);
     
 }
+
