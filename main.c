@@ -199,7 +199,7 @@ void *print_html(void *arg){
     
     for (int i = 0; gpsDataType1[i] != '\0'; i++) {
         struct tm * date_time = convertDateTime(gpsDataType1[i]->fix_time,gpsDataType1[i]->date);
-        fprintf(fp, "\t<tr><td><center>%d</center></td><td><center>%.4f</center></td><td><center>%c</center></td><td><center>%.4f</center></td><td><center>%c</center></td><td><center>%.4f</center></td><td><center>%c</center></td><td><center>%d/%d/%d %d:%d:%d</center></td><td><center><a href=\"https://www.google.com/maps/?q=%.4f,%.4f\" target=\"_blank\">Click</a></center></td></tr>",
+        fprintf(fp, "\t<tr><td><center>%d</center></td><td><center>%.4f</center></td><td><center>%c</center></td><td><center>%.4f</center></td><td><center>%c</center></td><td><center>%.4f</center></td><td><center>%c</center></td><td><center>%02d/%02d/%02d %02d:%02d:%02d</center></td><td><center><a href=\"https://www.google.com/maps/?q=%.4f,%.4f\" target=\"_blank\">Click</a></center></td></tr>",
                 
                 i,
                 gpsDataType1[i]->fix_time,
@@ -265,6 +265,7 @@ float convertDegreeToDecimal(float value, char direction){
     return sign * (degrees + converted_minutes);
 }
 
+
 /* FREE-UP MEMORY USED BY GPS STRUCTURE  */
 void clean(){
     
@@ -272,3 +273,4 @@ void clean(){
         free(gpsDataType1[i]);
     
 }
+
