@@ -13,7 +13,7 @@
  
  Where:
     Field #     Value        Description
-    1           RMC          Recommended Minimum sentence C
+    1           $GPRMC       Recommended Minimum sentence C
     2           123519       Position Fix taken at 12:35:19 UTC
     3           A            Data Status A=active or V=Void (navigation receiver warning)
     4           4807.038     Latitude of fix: 48 deg 07.038'
@@ -99,11 +99,11 @@ int main(int argc, char **argv) {
     size_t len = 0;
     ssize_t read;
     int line_num = 0;
-    char peek[8];
+    char peek[6];
     
     while ((read = getline(&line, &len, fp)) != -1) {
-        strncpy(peek, line, 7);
-        if(strcmp(peek, "$GPRMC," ) == 0)
+        strncpy(peek, line, 6);
+        if(strcmp(peek, "$GPRMC" ) == 0)
             gpsDataType1[line_num++] =  loadGPRMCData(line);
         else {
             perror("Error. GPS data specification not found.");
@@ -234,7 +234,7 @@ struct tm  * convertDateTime(float utc, int date){
 }
 
 
-/* FUNCTION TO CONVERT THE PARSE GPS COORDINATE DEGREE MINUTE DATA AND CONVERT TO DEGREE DECIMAL VALUE */
+/* FUNCTION TO CONVERT THE PARSED GPS COORDINATE DEGREE MINUTE DATA AND CONVERT TO DEGREE DECIMAL VALUE */
 float convertDegreeToDecimal(float value, char direction){
     
     //Decimal Degrees = Degrees + minutes/60 + seconds/3600
@@ -271,3 +271,4 @@ void clean(){
         free(gpsDataType1[i]);
     
 }
+
