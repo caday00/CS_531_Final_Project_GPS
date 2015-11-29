@@ -93,20 +93,22 @@ int main(int argc, char **argv) {
     }
     
     /*
-     READ LINE DATA IN AND DETERMINE WHICH TYPE OF GPS DATA IT IS BY INSPECTING THE FIRST SEVEN CHARS.
+     READ LINE DATA IN AND DETERMINE WHICH TYPE OF GPS DATA IT IS BY INSPECTING THE FIRST SIX CHARS.
      */
-    char *line = NULL;
+    char *line;
     size_t len = 0;
     ssize_t read;
     int line_num = 0;
     char peek[6];
     
     while ((read = getline(&line, &len, fp)) != -1) {
-        strncpy(peek, line, 6);
-        if(strcmp(peek, "$GPRMC" ) == 0)
+        
+       strncpy(peek, line, sizeof(peek));
+        if(memcmp(peek,"$GPRMC",6) == 0)
             gpsDataType1[line_num++] =  loadGPRMCData(line);
         else {
             perror("Error. GPS data specification not found.");
+            printf("Line #: %d\n%s",line_num, line);
             exit(EXIT_FAILURE);
         }
     }
@@ -263,7 +265,6 @@ float convertDegreeToDecimal(float value, char direction){
     return sign * (degrees + converted_minutes);
 }
 
-
 /* FREE-UP MEMORY USED BY GPS STRUCTURE  */
 void clean(){
     
@@ -271,4 +272,3 @@ void clean(){
         free(gpsDataType1[i]);
     
 }
-
