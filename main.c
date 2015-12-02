@@ -222,6 +222,10 @@ void *print_html(void *arg){
 /* FUNCTION TO CREATE A DATE TIME STAMP STRUCTURE FOR FURTHER USE */
 struct tm  * convertDateTime(float utc, int date){
     
+    //Sample Time (UTC): 232155.000 = 23:21:55
+    
+    //Sample Date: 181115 = 11/18/2015
+    
     struct tm *p = malloc(sizeof(struct tm));
     int time = (int) utc;
     
@@ -240,6 +244,8 @@ struct tm  * convertDateTime(float utc, int date){
 float convertDegreeToDecimal(float value, char direction){
     
     //Decimal Degrees = Degrees + minutes/60 + seconds/3600
+    
+    //Sample: 3854.7070 = 38 Degrees 54.7070 Minutes
     
     int sign;
     int degrees;
